@@ -4,8 +4,50 @@
     <meta charset="utf-8">
     <title>L'Halloween d'Elliot et Robin</title>
     <script src="game.js"></script>
+    <style>
+      kbd {
+        font-family: monospace;
+        display: inline-block;
+        border: 1px solid black;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 1.5em;
+        padding: 0.2em 0.5em;
+        margin: 0 8px;
+      }
+      table {
+        table-layout: fixed;
+        border-collapse: collapse;
+      }
+      table td, table th {
+        padding: 0.5em 1.5em;
+      }
+      table tr {
+        border-bottom: 1px solid black;
+      }
+    </style>
   </head>
   <body>
     <div id='my-phaser-game'></div>
+
+    <h2>Controls</h2>
+    <table>
+      <tr>
+        <th></th>
+        <th>Move</th>
+        <th>Jump</th>
+      </tr>
+      <tr>
+        <th>Player 1</th>
+        <td><kbd>←</kbd><kbd>→</kbd></td>
+        <td><kbd>↑</kbd></td>
+      </tr>
+      <tr>
+        <th>Player 2</th>
+        <td><kbd>A</kbd><kbd>D</kbd></td>
+        <td><kbd>W</kbd></td>
+      </tr>
+    </table>
   </body>
 </html>
+
