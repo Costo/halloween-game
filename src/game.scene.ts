@@ -1,5 +1,5 @@
 import 'phaser'
-import { Player, Elliot, Robin } from './player'
+import { Elliot, Robin, Melodie } from './player'
 import { Cloud } from './cloud'
 
 export class Demo extends Phaser.Scene {
@@ -28,6 +28,7 @@ export class Demo extends Phaser.Scene {
       this.load.spritesheet('sweet1', 'assets/bonbon32.png', { frameWidth: 32, frameHeight: 32 })
       this.load.spritesheet('robin', 'assets/persorobin.png', { frameWidth: 32, frameHeight: 48 })
       this.load.spritesheet('elliot', 'assets/persoelliot.png', { frameWidth: 32, frameHeight: 48 })
+      this.load.spritesheet('melodie', 'assets/melodie.png', { frameWidth: 64, frameHeight: 68 })
     }
 
     gameOver = false;
@@ -40,8 +41,7 @@ export class Demo extends Phaser.Scene {
     key: Phaser.Physics.Arcade.Sprite;
     clouds: Phaser.Physics.Arcade.Group;
     platforms: Phaser.Physics.Arcade.StaticGroup;
-    player1: Player;
-    player2: Player;
+    players: Phaser.Physics.Arcade.Group;
     sweets: Phaser.Physics.Arcade.Group;
 
     create () {
@@ -56,8 +56,9 @@ export class Demo extends Phaser.Scene {
       this.clouds = this.physics.add.group([
         new Cloud({ scene: this, texture: 'cloud1', x: 200, y: 20, velocity: 5 }),
         new Cloud({ scene: this, texture: 'cloud2', x: -400, y: -80, velocity: 10 })
-      ])
-      this.clouds.runChildUpdate = true
+      ], {
+        runChildUpdate: true
+      })
 
       this.add.image(0, 0, 'bg').setOrigin(0, 0)
 
@@ -168,6 +169,32 @@ export class Demo extends Phaser.Scene {
         repeat: -1
       })
 
+      this.anims.create({
+        key: 'melodie-looks-right',
+        frames: [{ key: 'melodie', frame: 5 }],
+        frameRate: 20
+      })
+
+      this.anims.create({
+        key: 'melodie-looks-left',
+        frames: [{ key: 'melodie', frame: 2 }],
+        frameRate: 20
+      })
+
+      this.anims.create({
+        key: 'melodie-left',
+        frames: this.anims.generateFrameNumbers('melodie', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1
+      })
+
+      this.anims.create({
+        key: 'melodie-right',
+        frames: this.anims.generateFrameNumbers('melodie', { start: 5, end: 8 }),
+        frameRate: 10,
+        repeat: -1
+      })
+
       this.add.sprite(487, 418, 'ghost').play('ghost-anim')
       this.add.sprite(312, 522, 'cauldron').play('cauldron-anim')
       this.add.sprite(312, 553, 'fire').play('fire-anim')
@@ -184,20 +211,33 @@ export class Demo extends Phaser.Scene {
       (this.key.body as any).setAllowGravity(false)
       this.particles = this.add.particles('key-particle')
 
-      this.player1 = new Robin({
+      this.players = this.physics.add.group({
+        runChildUpdate: true,
+        createCallback: (item: Phaser.Physics.Arcade.Sprite) => {
+          item.setBounce(0.2)
+          item.setCollideWorldBounds(true)
+          item.setGravityY(300)
+        }
+      })
+      // this.players.add(new Robin({
+      //   scene: this,
+      //   x: 100,
+      //   y: 450
+      // }))
+      this.players.add(new Melodie({
         scene: this,
         x: 100,
         y: 450
-      })
+      }), true)
 
-      this.player2 = new Elliot({
-        scene: this,
-        x: 700,
-        y: 450
-      })
+      // this.players.add(new Elliot({
+      //   scene: this,
+      //   x: 700,
+      //   y: 450
+      // }))
 
-      this.physics.add.collider([this.player1, this.player2, this.chest], this.platforms)
-      this.physics.add.collider(pumpkins, this.platforms)
+      this.physics.add.collider(this.chest, this.platforms)
+      this.physics.add.collider([this.players, pumpkins], this.platforms)
 
       this.sweets = this.physics.add.group()
       for (let i = 0; i < 40; i++) {
@@ -208,9 +248,9 @@ export class Demo extends Phaser.Scene {
         child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4))
       })
       this.physics.add.collider(this.sweets, this.platforms)
-      this.physics.add.overlap([this.player1, this.player2], this.sweets, this.collectStar, null, this)
+      this.physics.add.overlap(this.players, this.sweets, this.collectStar, null, this)
 
-      this.physics.add.collider(this.player1, this.player2, null, null, this)
+      //this.physics.add.collider(this.player1, this.player2, null, null, this)
     }
 
   private addCandy() {
@@ -228,8 +268,6 @@ export class Demo extends Phaser.Scene {
   }
 
     update () {
-      this.player1.update()
-      this.player2.update()
     }
 
     collectStar (player, star) {
@@ -262,7 +300,7 @@ export class Demo extends Phaser.Scene {
           this.key.setInteractive()
           this.key.setCollideWorldBounds(true)
           this.physics.add.collider([this.key], this.platforms)
-          this.physics.add.overlap([this.player1, this.player2], this.key, this.collectKey, null, this)
+          this.physics.add.overlap(this.key, this.players, this.collectKey, null, this)
           this.physics.add.overlap(this.chest, this.key, this.openChest, () => !this.gameOver, this)
         }, 10 * 1000)
       }
@@ -270,15 +308,14 @@ export class Demo extends Phaser.Scene {
 
     interval: number | undefined
 
-    collectKey (player, key: Phaser.Physics.Arcade.Sprite) {
+    collectKey (key, player: Phaser.Physics.Arcade.Sprite) {
+
       if (this.particles) {
         this.particles.destroy()
         this.particles = null
       }
-      if (!this.keyCollected) {
-        this.physics.moveToObject(key, player, 120)
-        this.keyCollected = true
-      }
+      this.keyCollected = true
+      key.setVelocity(0)
       window.clearInterval(this.interval)
       this.interval = window.setInterval(() => {
         const dist = Phaser.Math.Distance.Between(player.x, player.y, key.x, key.y)

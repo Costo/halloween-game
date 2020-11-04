@@ -17,8 +17,6 @@ interface PlayerConfig {
   scene: Phaser.Scene;
   x: number;
   y: number;
-  texture: string;
-  anims: Animations;
 }
 
 export abstract class Player extends Phaser.Physics.Arcade.Sprite {
@@ -26,17 +24,10 @@ export abstract class Player extends Phaser.Physics.Arcade.Sprite {
     private animations: Animations;
     protected keys: Keys;
 
-    constructor (config: PlayerConfig) {
+    constructor (config: PlayerConfig & { texture: string, anims: Animations }) {
       super(config.scene, config.x, config.y, config.texture)
 
       this.animations = config.anims
-
-      config.scene.add.existing(this)
-      config.scene.physics.add.existing(this)
-
-      this.setBounce(0.2)
-      this.setCollideWorldBounds(true)
-      this.setGravityY(300)
     }
 
     update () {
@@ -59,14 +50,30 @@ export abstract class Player extends Phaser.Physics.Arcade.Sprite {
     }
 }
 
-interface ElliotConfig {
-    scene: Phaser.Scene;
-    x: number;
-    y: number;
+export class Melodie extends Player {
+  constructor (config: PlayerConfig) {
+    super({
+      texture: 'melodie',
+      anims: {
+        left: 'melodie-left',
+        right: 'melodie-right',
+        looksLeft: 'melodie-looks-left',
+        looksRight: 'melodie-looks-right'
+      },
+      ...config
+    })
+
+    const cursors = this.scene.input.keyboard.createCursorKeys()
+    this.keys = {
+      left: cursors.left,
+      jump: cursors.up,
+      right: cursors.right
+    }
+  }
 }
 
 export class Elliot extends Player {
-  constructor (config: ElliotConfig) {
+  constructor (config: PlayerConfig) {
     super({
       texture: 'elliot',
       anims: {
@@ -86,14 +93,8 @@ export class Elliot extends Player {
   }
 }
 
-interface RobinConfig {
-    scene: Phaser.Scene;
-    x: number;
-    y: number;
-}
-
 export class Robin extends Player {
-  constructor (config: RobinConfig) {
+  constructor (config: PlayerConfig) {
     super({
       texture: 'robin',
       anims: {
