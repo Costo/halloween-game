@@ -28,7 +28,7 @@ export class Demo extends Phaser.Scene {
       this.load.spritesheet('sweet1', 'assets/bonbon32.png', { frameWidth: 32, frameHeight: 32 })
       this.load.spritesheet('robin', 'assets/persorobin.png', { frameWidth: 32, frameHeight: 48 })
       this.load.spritesheet('elliot', 'assets/persoelliot.png', { frameWidth: 32, frameHeight: 48 })
-      this.load.spritesheet('melodie', 'assets/melodie.png', { frameWidth: 64, frameHeight: 68 })
+      this.load.spritesheet('melodie', 'assets/melodie.png', { frameWidth: 64, frameHeight: 66 })
     }
 
     gameOver = false;
@@ -190,7 +190,14 @@ export class Demo extends Phaser.Scene {
 
       this.anims.create({
         key: 'melodie-right',
-        frames: this.anims.generateFrameNumbers('melodie', { start: 5, end: 8 }),
+        frames:  this.anims.generateFrameNumbers('melodie', { start: 5, end: 8 }),
+        frameRate: 10,
+        repeat: -1
+      })
+
+      this.anims.create({
+        key: 'melodie-jump',
+        frames: [{ key: 'melodie', frame: 9 }],
         frameRate: 10,
         repeat: -1
       })
@@ -270,9 +277,9 @@ export class Demo extends Phaser.Scene {
     update () {
     }
 
-    collectStar (player, star) {
+    collectStar (player, candy: Phaser.Physics.Arcade.Sprite) {
       this.sound.play('crunch')
-      star.disableBody(true, true)
+      candy.disableBody(true, true)
 
       window.setTimeout(() => {
         this.addCandy()

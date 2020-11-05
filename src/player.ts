@@ -11,6 +11,7 @@ interface Animations {
   right: string;
   looksLeft: string;
   looksRight: string;
+  jump?: string;
 }
 
 interface PlayerConfig {
@@ -21,6 +22,7 @@ interface PlayerConfig {
 
 export abstract class Player extends Phaser.Physics.Arcade.Sprite {
     private looksRight: boolean = true;
+    private jumping = false;
     private animations: Animations;
     protected keys: Keys;
 
@@ -41,11 +43,24 @@ export abstract class Player extends Phaser.Physics.Arcade.Sprite {
         this.anims.play(this.animations.right, true)
       } else {
         this.setVelocityX(0)
-        this.anims.play(this.looksRight ? this.animations.looksRight : this.animations.looksLeft)
+        if (this.jumping) {
+          this.anims.play(this.animations.jump)
+        } else if (this.looksRight) {
+          this.anims.play(this.animations.looksRight)
+        } else {
+          this.anims.play(this.animations.looksLeft)
+        }
       }
 
-      if (this.keys.jump.isDown && this.body.touching.down) {
-        this.setVelocityY(-450)
+      if (this.body.touching.down) {
+        this.jumping = false
+        if (this.keys.jump.isDown) {
+          this.setVelocityY(-450)
+          if (this.animations.jump) {
+            this.anims.play(this.animations.jump)
+            this.jumping = true
+          }
+        }
       }
     }
 }
@@ -58,7 +73,8 @@ export class Melodie extends Player {
         left: 'melodie-left',
         right: 'melodie-right',
         looksLeft: 'melodie-looks-left',
-        looksRight: 'melodie-looks-right'
+        looksRight: 'melodie-looks-right',
+        jump: 'melodie-jump'
       },
       ...config
     })
